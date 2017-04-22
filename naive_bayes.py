@@ -1,4 +1,5 @@
 import os
+import math
 
 HAM_FOLDER = "data/train/ham"
 SPAM_FOLDER = "data/train/spam"
@@ -67,17 +68,38 @@ def word_probability():
     spam_map_probability = {}
 
     for key in ham_map.keys():
-        ham_map_probability[key] = ham_map[key] / HAM_COUNT
+        ham_map_probability[key] = ham_map[key] + 1/ (HAM_COUNT + 2)
+        if key not in spam_map.keys():
+            spam_map_probability[key] = 1 / (SPAM_COUNT + 2)
     for key in spam_map.keys():
-        spam_map_probability[key] = spam_map[key] / SPAM_COUNT
+        spam_map_probability[key] = spam_map[key] + 1/ (SPAM_COUNT + 2)
+        if key not in ham_map.keys():
+            ham_map_probability[key] = 1 / (HAM_COUNT + 2)
     return ham_map_probability, spam_map_probability
 
 
 def label_spam(text_file):
     tokens = token_set(text_file)
+    words_prob = word_probability()
     prob_spam = SPAM_COUNT / (HAM_COUNT + SPAM_COUNT)
     prob_ham = HAM_COUNT / (SPAM_COUNT + HAM_COUNT)
-    word_probabilities = word_probability()
-	
+    spam_word_set = word_count(SPAM_FOLDER).keys()
+    ham_word_set = word_count(HAM_FOLDER).keys()
+    prob_word_spam = 1
+    prob_word_ham = 1
+    for token in tokens:
+        if token in (ham_word_set & spam_word_set):
+            prob_word_ham *= words_prob[0][token]
+            prob_word_spam *= words_prob[1][token]
+    prob_word_spam = math.log10(prob_spam * prob_word_spam)
+    prob_word_ham = math.log10(prob_ham * prob_word_ham)
+    return prob_word_spam / (prob_word_ham + prob_word_spam) > .5
 
 
+def output():
+    test_directory = "data/test"
+    for email in os.listdir("data/test"):
+        output = email +" "
+        output += "spam" if label_spam(test_directory + "/" + email) else "ham"
+
+print(label_spam("data/test/6.txt"))
