@@ -1,9 +1,11 @@
 import math
 import os
 
+# Relative paths of training and testing data that is provided.
 HAM_FOLDER = "data/train/ham"
 SPAM_FOLDER = "data/train/spam"
-TEST_DATE = "data/test"
+TEST_DATA = "data/test"
+# The number of ham and spam emails.
 HAM_COUNT = sum(os.path.isfile(os.path.join(HAM_FOLDER, f)) for f in os.listdir(HAM_FOLDER))
 SPAM_COUNT = sum(os.path.isfile(os.path.join(SPAM_FOLDER, f)) for f in os.listdir(SPAM_FOLDER))
 
@@ -122,4 +124,4 @@ def label_spam(test_files):
         output += " spam" if is_spam else " ham"
         print(output)
 
-label_spam("data/test")
+label_spam(TEST_DATA)
