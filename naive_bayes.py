@@ -104,7 +104,7 @@ def label_spam(test_files):
     # Get all the words that appear in both the ham and spam training data.
     word_set = word_count(HAM_FOLDER).keys() & word_count(SPAM_FOLDER).keys()
 
-    for file in os.listdir(test_files):
+    for file in sorted(os.listdir(test_files)):
         # Get the tokens of the file
         tokens = token_set(test_files + "/" + file)
         # Iterate through the tokens from the test email
@@ -121,4 +121,5 @@ def label_spam(test_files):
         output = file
         output += " spam" if is_spam else " ham"
         print(output)
+
 label_spam("data/test")
