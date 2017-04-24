@@ -9,6 +9,9 @@ TEST_DATA = "data/test"
 HAM_COUNT = sum(os.path.isfile(os.path.join(HAM_FOLDER, f)) for f in os.listdir(HAM_FOLDER))
 SPAM_COUNT = sum(os.path.isfile(os.path.join(SPAM_FOLDER, f)) for f in os.listdir(SPAM_FOLDER))
 
+# Smoothing factor
+K = 1
+
 
 def token_set(filename):
     #open the file handle
@@ -50,7 +53,7 @@ def word_count(file_path):
     return word_counts
 
 
-def word_probability():
+def word_probability(k):
     """
     Calculates the probability of a word appearing in both a spam email and a ham email.
     
@@ -77,38 +80,40 @@ def word_probability():
     """
     for key in ham_map.keys():
         # Insert a new entry containing the key with the a mapping to the correct probability and Laplace smoothing.
-        ham_map_probability[key] = (ham_map[key] + 1) / (HAM_COUNT + 2)
+        ham_map_probability[key] = (ham_map[key] + k) / (HAM_COUNT + (2 * k))
         assert 0 < ham_map_probability[key] < 1
         # If the key is not in the spam key set, then add it with Laplace smoothing in order to avoid 0 probabilities.
         if key not in spam_map.keys():
-            spam_map_probability[key] = 1 / (SPAM_COUNT + 2)
+            spam_map_probability[key] = k / (SPAM_COUNT + (2 * k))
             assert 0 < spam_map_probability[key] < 1
     for key in spam_map.keys():
         # Insert a new entry containing the key with the a mapping to the correct probability and Laplace smoothing.
-        spam_map_probability[key] = (spam_map[key] + 1) / (SPAM_COUNT + 2)
+        spam_map_probability[key] = (spam_map[key] + k) / (SPAM_COUNT + (2 * k))
         assert 0 < spam_map_probability[key] < 1
         # If the key is not in the spam key set, then add it with Laplace smoothing in order to avoid 0 probabilities.
         if key not in ham_map.keys():
-            ham_map_probability[key] = 1 / (HAM_COUNT + 2)
+            ham_map_probability[key] = k / (HAM_COUNT + (2 * k))
             assert 0 < ham_map_probability[key] < 1
     # Returns a tuple containing both value maps.
     return ham_map_probability, spam_map_probability
 
 
-def label_spam(test_files):
+def output_map(test_files, k):
+    output = {}
     # Get the probabilities of words for the training set
-    words_prob = word_probability()
+    words_prob = word_probability(k)
     # Calculate the probability of ham and spam
     prob_spam = SPAM_COUNT / (HAM_COUNT + SPAM_COUNT)
     prob_ham = HAM_COUNT / (SPAM_COUNT + HAM_COUNT)
     assert 0 < prob_ham < 1
     assert 0 < prob_spam < 1
     # Get all the words that appear in both the ham and spam training data.
-    word_set = word_count(HAM_FOLDER).keys() & word_count(SPAM_FOLDER).keys()
+    word_set = word_count(HAM_FOLDER).keys() | word_count(SPAM_FOLDER).keys()
 
-    for file in sorted(os.listdir(test_files)):
+    for x in range(0,sum(os.path.isfile(os.path.join(TEST_DATA, f)) for f in os.listdir(TEST_DATA)) ):
         # Get the tokens of the file
-        tokens = token_set(test_files + "/" + file)
+        file = test_files + "/" + str((x + 1)) + ".txt"
+        tokens = token_set(file)
         # Iterate through the tokens from the test email
         prob_word_spam = 0
         prob_word_ham = 0
@@ -120,8 +125,11 @@ def label_spam(test_files):
         # Calculate the probabilities using the formulas given.
         is_spam = prob_word_spam + math.log10(prob_spam) > prob_word_ham + math.log10(prob_ham)
         # Return whether the probability of it being spam is greater than 1/2. If so, it spam. It is ham otherwise.
-        output = file
-        output += " spam" if is_spam else " ham"
-        print(output)
+        output[str((x+1)) + ".txt"] = "spam" if is_spam else "ham"
+    return output
 
-label_spam(TEST_DATA)
+
+def label_spam(test_files):
+    output = output_map(test_files, K)
+    for entry in output:
+        print(entry + " " + output[entry])
