@@ -10,7 +10,7 @@ HAM_COUNT = sum(os.path.isfile(os.path.join(HAM_FOLDER, f)) for f in os.listdir(
 SPAM_COUNT = sum(os.path.isfile(os.path.join(SPAM_FOLDER, f)) for f in os.listdir(SPAM_FOLDER))
 
 # Smoothing factor
-K = 1
+K = 0.05
 
 
 def token_set(filename):
