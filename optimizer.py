@@ -32,12 +32,12 @@ def optimize():
     csv = open("k values.csv", "w")
     best = stats(1)
     csv.write("K Value, Correct Ham, Correct Spam, Incorrect Ham, Incorrect Spam, Percentage Accuracy")
-    for x in range(1, 5001):
-        k = x * 0.05
+    for x in range(1, 51):
+        k = x * 0.001
         trial = stats(k)
         data = str(k) + "," + str(trial[0]) + "," + str(trial[1]) + "," + str(trial[2]) + "," + str(trial[3]) + "," \
                + str(trial[4])
-        csv.write(data)
+        csv.write(data + "\n")
         print(data)
 
         if trial[4] > best[4]:
